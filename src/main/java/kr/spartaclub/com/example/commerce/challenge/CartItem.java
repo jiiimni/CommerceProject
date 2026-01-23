@@ -2,10 +2,7 @@ package kr.spartaclub.com.example.commerce.challenge;
 
 import kr.spartaclub.com.example.commerce.Product;
 
-/**
- * 장바구니에 담긴 한 줄 항목
- * - 어떤 상품을 몇 개 담았는지를 보관
- */
+//장바구니에 담긴 한 줄 항목 - 어떤 상품을 몇 개 담았는지를 보관
 public class CartItem {
     private final Product product;
     private int quantity;

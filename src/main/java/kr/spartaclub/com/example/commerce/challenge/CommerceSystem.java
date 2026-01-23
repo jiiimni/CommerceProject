@@ -2,7 +2,9 @@ package kr.spartaclub.com.example.commerce.challenge;
 
 import kr.spartaclub.com.example.commerce.Product;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 // CommerceSystem 클래스
@@ -19,9 +21,21 @@ public class CommerceSystem {
     // 장바구니 객체
     private final Cart cart = new Cart();
 
+    // 고객 정보를 관리하는 Map (email -> Customer)
+    private final Map<String, Customer> customers = new HashMap<>();
+
+    // 관리자 비밀번호
+    private static final String ADMIN_PASSWORD = "admin123";
+
     // CommerceSystem 생성자
     public CommerceSystem(List<Category> categories) {
         this.categories = categories;
+
+        // 테스트용 고객 데이터
+        customers.put("bronze@test.com", new Customer("브론즈", "bronze@test.com", CustomerGrade.BRONZE, 0));
+        customers.put("silver@test.com", new Customer("실버", "silver@test.com", CustomerGrade.SILVER, 600_000));
+        customers.put("gold@test.com", new Customer("골드", "gold@test.com", CustomerGrade.GOLD, 1_200_000));
+        customers.put("platinum@test.com", new Customer("플래티넘", "platinum@test.com", CustomerGrade.PLATINUM, 2_500_000));
     }
 
     // 프로그램 시작 메서드
@@ -63,6 +77,16 @@ public class CommerceSystem {
                 continue;
             }
 
+            // 장바구니에서 특정 상품 제거
+            if (input == 7) {
+                if (cart.isEmpty()) {
+                    System.out.println("장바구니가 비어 있습니다.\n");
+                } else {
+                    removeCartItemFlow();
+                }
+                continue;
+            }
+
             // 카테고리 선택
             if (input >= 1 && input <= categories.size()) {
                 Category selectedCategory = categories.get(input - 1);
@@ -83,6 +107,7 @@ public class CommerceSystem {
 
         System.out.println("0. 종료      | 프로그램 종료");
 
+        // 관리자 모드는 항상 출력
         System.out.println("6. 관리자 모드");
 
         // 장바구니가 비어있지 않을 때만 주문 관리 메뉴 출력
@@ -91,6 +116,7 @@ public class CommerceSystem {
             System.out.println("[ 주문 관리 ]");
             System.out.println("4. 장바구니 확인    | 장바구니를 확인 후 주문합니다.");
             System.out.println("5. 주문 취소       | 진행중인 주문을 취소합니다.");
+            System.out.println("7. 장바구니 상품 제거 | 장바구니 항목을 삭제합니다.");
         }
 
         System.out.print("> ");
@@ -102,17 +128,48 @@ public class CommerceSystem {
             System.out.println();
             System.out.printf("[ %s 카테고리 ]%n", category.getName());
 
+            System.out.println("1. 전체 상품 보기");
+            System.out.println("2. 가격대별 필터링 (100만원 이하)");
+            System.out.println("3. 가격대별 필터링 (100만원 초과)");
+            System.out.println("0. 뒤로가기");
+            System.out.print("> ");
+
+            int menu = sc.nextInt();
+
+            if (menu == 0) {
+                System.out.println();
+                return;
+            }
+
             List<Product> products = category.getProducts();
 
-            for (int i = 0; i < products.size(); i++) {
-                Product p = products.get(i);
-                System.out.printf("%d. %-12s | %,d원 | %s | 재고: %d개%n",
-                        i + 1,
-                        p.getName(),
-                        p.getPrice(),
-                        p.getDescription(),
-                        p.getStock());
+            List<Product> viewList;
+            if (menu == 1) {
+                viewList = products;
+            } else if (menu == 2) {
+                viewList = products.stream()
+                        .filter(p -> p.getPrice() <= 1_000_000)
+                        .toList();
+            } else if (menu == 3) {
+                viewList = products.stream()
+                        .filter(p -> p.getPrice() > 1_000_000)
+                        .toList();
+            } else {
+                System.out.println("잘못된 입력입니다. 다시 선택해주세요.\n");
+                continue;
             }
+
+            if (viewList.isEmpty()) {
+                System.out.println("조건에 맞는 상품이 없습니다.\n");
+                continue;
+            }
+
+            final int[] idx = {1};
+            viewList.stream().forEach(p -> {
+                System.out.printf("%d. %-12s | %,d원 | %s | 재고: %d개%n",
+                        idx[0]++, p.getName(), p.getPrice(), p.getDescription(), p.getStock());
+            });
+
 
             System.out.println("0. 뒤로가기");
             System.out.print("> ");
@@ -123,8 +180,8 @@ public class CommerceSystem {
                 return;
             }
 
-            if (input >= 1 && input <= products.size()) {
-                Product selected = products.get(input - 1);
+            if (input >= 1 && input <= viewList.size()) {
+                Product selected = viewList.get(input - 1);
 
                 System.out.printf("선택한 상품: %s | %,d원 | %s | 재고: %d개%n",
                         selected.getName(),
@@ -188,7 +245,7 @@ public class CommerceSystem {
         System.out.println("[ 총 주문 금액 ]");
         System.out.printf("%,d원%n%n", total);
 
-        System.out.println("1. 주문 확정      2. 메인으로 돌아가기");
+        System.out.println("1. 주문 하기      2. 메인으로 돌아가기");
         System.out.print("> ");
         int input = sc.nextInt();
 
@@ -201,21 +258,51 @@ public class CommerceSystem {
 
     // 주문 확정 처리
     private void confirmOrder() {
+        int total = cart.getTotalAmount();
+
+        System.out.print("고객 이메일을 입력해주세요.\n입력 : ");
+        String email = sc.next();
+
+        Customer customer = customers.get(email);
+        if (customer == null) {
+            System.out.println("등록되지 않은 이메일입니다. (BRONZE로 처리됩니다)\n");
+            customer = new Customer("비회원", email, CustomerGrade.BRONZE, 0);
+        }
+
+        CustomerGrade grade = customer.getGrade();
+        int discount = (int) Math.round(total * grade.getDiscountRate());
+        int finalPay = total - discount;
+
         for (CartItem item : cart.getItems()) {
             Product product = item.getProduct();
             int quantity = item.getQuantity();
             product.decreaseStock(quantity);
         }
 
-        int total = cart.getTotalAmount();
+        customer.addOrderAmount(finalPay);
         cart.clear();
 
-        System.out.printf("주문이 완료되었습니다! 총 금액: %,d원%n%n", total);
+        System.out.println("주문이 완료되었습니다!");
+        System.out.printf("할인 전 금액: %,d원%n", total);
+        System.out.printf("%s 등급 할인(%d%%): -%,d원%n", grade.name(), grade.getDiscountPercent(), discount);
+        System.out.printf("최종 결제 금액: %,d원%n%n", finalPay);
+    }
+
+    // 장바구니에서 특정 상품을 제거하는 기능
+    private void removeCartItemFlow() {
+        System.out.print("제거할 상품명을 입력해주세요: ");
+        sc.nextLine();
+        String name = sc.nextLine();
+
+        boolean removed = cart.removeByProductName(name);
+        if (removed) {
+            System.out.println("장바구니에서 제거되었습니다.\n");
+        } else {
+            System.out.println("해당 상품이 장바구니에 없습니다.\n");
+        }
     }
 
     // 관리자 모드 기능
-    private static final String ADMIN_PASSWORD = "admin123";
-
     private void runAdminMode() {
         int attempts = 0;
 
