@@ -1,7 +1,5 @@
 # [내일배움캠프 Spring_3기] CH2 커머스 과제
 
-상품/카테고리/고객/주문/재고라는 커머스의 핵심 도메인을 객체로 정의하고, 객체들이 협력하는 구조로 기능을 확장했습니다.  
-
 - 개발 환경: Java 17, IntelliJ IDEA, Gradle
 - 패키지 기준:
   - 필수 Step: `kr.spartaclub.com.example.commerce.step*`
