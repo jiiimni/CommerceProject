@@ -67,3 +67,12 @@
 예시(환경에 따라 다를 수 있음):
 ```bash
 ./gradlew run
+```
+
+
+## 참고(velog)  
+필수 step1 https://velog.io/@jiiim_ni/%EB%82%B4%EC%9D%BC%EB%B0%B0%EC%9B%80%EC%BA%A0%ED%94%84-Spring3%EA%B8%B0-CH2-%EC%BB%A4%EB%A8%B8%EC%8A%A4-%EA%B3%BC%EC%A0%9C-Step1  
+필수 step2 https://velog.io/@jiiim_ni/%EB%82%B4%EC%9D%BC%EB%B0%B0%EC%9B%80%EC%BA%A0%ED%94%84-Spring3%EA%B8%B0-CH2-%EC%BB%A4%EB%A8%B8%EC%8A%A4-%EA%B3%BC%EC%A0%9C-Step2  
+필수 step3 https://velog.io/@jiiim_ni/%EB%82%B4%EC%9D%BC%EB%B0%B0%EC%9B%80%EC%BA%A0%ED%94%84-Spring3%EA%B8%B0-CH2-%EC%BB%A4%EB%A8%B8%EC%8A%A4-%EA%B3%BC%EC%A0%9C-Step3  
+필수 step4 https://velog.io/@jiiim_ni/%EB%82%B4%EC%9D%BC%EB%B0%B0%EC%9B%80%EC%BA%A0%ED%94%84-Spring3%EA%B8%B0-CH2-%EC%BB%A4%EB%A8%B8%EC%8A%A4-%EA%B3%BC%EC%A0%9C-Step4  
+도전 기능 https://velog.io/@jiiim_ni/%EB%82%B4%EC%9D%BC%EB%B0%B0%EC%9B%80%EC%BA%A0%ED%94%84-Spring3%EA%B8%B0-CH2-%EC%BB%A4%EB%A8%B8%EC%8A%A4-%EA%B3%BC%EC%A0%9C-%EB%8F%84%EC%A0%84%EA%B8%B0%EB%8A%A5   
