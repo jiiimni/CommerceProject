@@ -57,6 +57,12 @@ public class CommerceSystem {
                 continue;
             }
 
+            // 관리자 모드
+            if (input == 6) {
+                runAdminMode();
+                continue;
+            }
+
             // 카테고리 선택
             if (input >= 1 && input <= categories.size()) {
                 Category selectedCategory = categories.get(input - 1);
@@ -76,6 +82,8 @@ public class CommerceSystem {
         }
 
         System.out.println("0. 종료      | 프로그램 종료");
+
+        System.out.println("6. 관리자 모드");
 
         // 장바구니가 비어있지 않을 때만 주문 관리 메뉴 출력
         if (!cart.isEmpty()) {
@@ -203,5 +211,226 @@ public class CommerceSystem {
         cart.clear();
 
         System.out.printf("주문이 완료되었습니다! 총 금액: %,d원%n%n", total);
+    }
+
+    // 관리자 모드 기능
+    private static final String ADMIN_PASSWORD = "admin123";
+
+    private void runAdminMode() {
+        int attempts = 0;
+
+        while (attempts < 3) {
+            System.out.print("관리자 비밀번호를 입력해주세요: ");
+            String pw = sc.next();
+
+            if (ADMIN_PASSWORD.equals(pw)) {
+                System.out.println("인증 성공\n");
+                showAdminMenu();
+                return;
+            }
+
+            attempts++;
+            System.out.println("비밀번호가 올바르지 않습니다. (" + attempts + "/3)\n");
+        }
+
+        System.out.println("비밀번호 3회 실패로 메인 메뉴로 돌아갑니다.\n");
+    }
+
+    private void showAdminMenu() {
+        while (true) {
+            System.out.println("[ 관리자 모드 ]");
+            System.out.println("1. 상품 추가");
+            System.out.println("2. 상품 수정");
+            System.out.println("3. 상품 삭제");
+            System.out.println("4. 전체 상품 현황");
+            System.out.println("0. 메인으로 돌아가기");
+            System.out.print("> ");
+
+            int input = sc.nextInt();
+
+            if (input == 0) {
+                System.out.println();
+                return;
+            }
+
+            switch (input) {
+                case 1 -> addProductFlow();
+                case 2 -> updateProductFlow();
+                case 3 -> deleteProductFlow();
+                case 4 -> printAllProducts();
+                default -> System.out.println("잘못된 입력입니다.\n");
+            }
+        }
+    }
+
+    private void addProductFlow() {
+        Category category = selectCategory();
+        if (category == null) return;
+
+        System.out.println("[ " + category.getName() + " 카테고리에 상품 추가 ]");
+
+        System.out.print("상품명을 입력해주세요: ");
+        sc.nextLine();
+        String name = sc.nextLine();
+
+        if (findProductByName(category, name) != null) {
+            System.out.println("같은 카테고리에 이미 같은 상품명이 존재합니다.\n");
+            return;
+        }
+
+        System.out.print("가격을 입력해주세요: ");
+        int price = sc.nextInt();
+
+        System.out.print("상품 설명을 입력해주세요: ");
+        sc.nextLine();
+        String desc = sc.nextLine();
+
+        System.out.print("재고수량을 입력해주세요: ");
+        int stock = sc.nextInt();
+
+        Product newProduct = new Product(name, price, desc, stock);
+
+        System.out.printf("%s | %,d원 | %s | 재고: %d개%n",
+                newProduct.getName(), newProduct.getPrice(), newProduct.getDescription(), newProduct.getStock());
+        System.out.println("위 정보로 상품을 추가하시겠습니까?");
+        System.out.println("1. 확인    2. 취소");
+        System.out.print("> ");
+        int confirm = sc.nextInt();
+
+        if (confirm == 1) {
+            category.getProducts().add(newProduct);
+            System.out.println("상품이 성공적으로 추가되었습니다!\n");
+        } else {
+            System.out.println("취소되었습니다.\n");
+        }
+    }
+
+    private void updateProductFlow() {
+        Category category = selectCategory();
+        if (category == null) return;
+
+        sc.nextLine();
+        System.out.print("수정할 상품명을 입력해주세요: ");
+        String name = sc.nextLine();
+
+        Product target = findProductByName(category, name);
+        if (target == null) {
+            System.out.println("해당 상품을 찾을 수 없습니다.\n");
+            return;
+        }
+
+        System.out.printf("현재 상품 정보: %s | %,d원 | %s | 재고: %d개%n%n",
+                target.getName(), target.getPrice(), target.getDescription(), target.getStock());
+
+        System.out.println("수정할 항목을 선택해주세요:");
+        System.out.println("1. 가격");
+        System.out.println("2. 설명");
+        System.out.println("3. 재고수량");
+        System.out.print("> ");
+        int choice = sc.nextInt();
+
+        try {
+            if (choice == 1) {
+                System.out.print("새로운 가격을 입력해주세요: ");
+                int newPrice = sc.nextInt();
+                int old = target.getPrice();
+                target.setPrice(newPrice);
+                System.out.printf("%s의 가격이 %,d원 → %,d원으로 수정되었습니다.%n%n",
+                        target.getName(), old, newPrice);
+            } else if (choice == 2) {
+                sc.nextLine();
+                System.out.print("새로운 설명을 입력해주세요: ");
+                String newDesc = sc.nextLine();
+                target.setDescription(newDesc);
+                System.out.println(target.getName() + "의 설명이 수정되었습니다.\n");
+            } else if (choice == 3) {
+                System.out.print("새로운 재고수량을 입력해주세요: ");
+                int newStock = sc.nextInt();
+                int old = target.getStock();
+                target.setStock(newStock);
+                System.out.printf("%s의 재고가 %d개 → %d개로 수정되었습니다.%n%n",
+                        target.getName(), old, newStock);
+            } else {
+                System.out.println("잘못된 입력입니다.\n");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("오류: " + e.getMessage() + "\n");
+        }
+    }
+
+    private void deleteProductFlow() {
+        Category category = selectCategory();
+        if (category == null) return;
+
+        sc.nextLine();
+        System.out.print("삭제할 상품명을 입력해주세요: ");
+        String name = sc.nextLine();
+
+        Product target = findProductByName(category, name);
+        if (target == null) {
+            System.out.println("해당 상품을 찾을 수 없습니다.\n");
+            return;
+        }
+
+        System.out.printf("삭제할 상품: %s | %,d원 | %s | 재고: %d개%n",
+                target.getName(), target.getPrice(), target.getDescription(), target.getStock());
+        System.out.println("정말 삭제하시겠습니까?");
+        System.out.println("1. 확인    2. 취소");
+        System.out.print("> ");
+        int confirm = sc.nextInt();
+
+        if (confirm == 1) {
+            category.getProducts().remove(target);
+            cart.removeProduct(target);
+            System.out.println("상품이 삭제되었습니다.\n");
+        } else {
+            System.out.println("취소되었습니다.\n");
+        }
+    }
+
+    private void printAllProducts() {
+        System.out.println("[ 전체 상품 현황 ]");
+        for (Category c : categories) {
+            System.out.println();
+            System.out.println("[ " + c.getName() + " ]");
+            List<Product> products = c.getProducts();
+            for (int i = 0; i < products.size(); i++) {
+                Product p = products.get(i);
+                System.out.printf("%d. %s | %,d원 | %s | 재고: %d개%n",
+                        i + 1, p.getName(), p.getPrice(), p.getDescription(), p.getStock());
+            }
+        }
+        System.out.println();
+    }
+
+    private Category selectCategory() {
+        System.out.println("어느 카테고리에 적용하시겠습니까?");
+        for (int i = 0; i < categories.size(); i++) {
+            System.out.printf("%d. %s%n", i + 1, categories.get(i).getName());
+        }
+        System.out.println("0. 취소");
+        System.out.print("> ");
+
+        int input = sc.nextInt();
+        if (input == 0) {
+            System.out.println("취소되었습니다.\n");
+            return null;
+        }
+
+        if (input < 1 || input > categories.size()) {
+            System.out.println("잘못된 입력입니다.\n");
+            return null;
+        }
+
+        return categories.get(input - 1);
+    }
+
+    private Product findProductByName(Category category, String name) {
+        for (Product p : category.getProducts()) {
+            if (p.getName().equalsIgnoreCase(name.trim())) {
+                return p;
+            }
+        }
+        return null;
     }
 }

@@ -50,4 +50,9 @@ public class Cart {
     public void clear() {
         items.clear();
     }
+
+    public void removeProduct(Product product) {
+        items.removeIf(item -> item.getProduct() == product);
+    }
+
 }
