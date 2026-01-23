@@ -18,5 +18,13 @@ public class Product {
     public String getDescription() { return description; }
     public int getStock() { return stock; }
 
-
+    // 주문 확정 시 재고 감소를 위한 메서드
+    public void decreaseStock(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("차감 수량은 0보다 커야 합니다.");
+        }
+        if (stock < quantity) {
+            throw new IllegalArgumentException("재고가 부족합니다.");
+        }
+        stock -= quantity;
 }
